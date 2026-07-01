@@ -1,6 +1,8 @@
 package com.commercehub.auth_service.service.impl;
 
 import com.commercehub.auth_service.constant.Roles;
+import com.commercehub.auth_service.dto.LoginRequest;
+import com.commercehub.auth_service.dto.LoginResponse;
 import com.commercehub.auth_service.dto.RegisterRequest;
 import com.commercehub.auth_service.dto.RegisterResponse;
 import com.commercehub.auth_service.entity.User;
@@ -9,6 +11,8 @@ import com.commercehub.auth_service.exception.UsernameAlreadyExistsException;
 import com.commercehub.auth_service.repository.UserRepository;
 import com.commercehub.auth_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +24,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final AuthenticationManager authenticationManager;
 
     @Override
     @Transactional
@@ -40,6 +46,19 @@ public class AuthServiceImpl implements AuthService {
 
         return RegisterResponse.builder()
                 .message("Registration Successful")
+                .build();
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+        return LoginResponse.builder()
+                .message("Login Successful")
                 .build();
     }
 
