@@ -1,5 +1,7 @@
 package com.commercehub.auth_service.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -7,11 +9,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginResponse {
+@Data
+public class RefreshTokenRequest {
 
-    private String accessToken;
-
-    private String tokenType;
-
+    @NotBlank
     private String refreshToken;
 }

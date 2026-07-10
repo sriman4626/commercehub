@@ -1,6 +1,8 @@
 package com.commercehub.auth_service.config;
 
 import com.commercehub.auth_service.security.CustomUserDetailsService;
+import com.commercehub.auth_service.security.JwtAccessDeniedHandler;
+import com.commercehub.auth_service.security.JwtAuthenticationEntryPoint;
 import com.commercehub.auth_service.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +28,11 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+
+    private final JwtAccessDeniedHandler accessDeniedHandler;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -34,11 +41,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/register").permitAll()
                         .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/auth/refresh").permitAll()
                         .anyRequest().authenticated()
                 )
                 //httpBasic(Customizer.withDefaults());
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exception->exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler));
 
         return http.build();
     }

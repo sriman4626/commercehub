@@ -1,10 +1,8 @@
 package com.commercehub.auth_service.service.impl;
 
 import com.commercehub.auth_service.constant.Roles;
-import com.commercehub.auth_service.dto.LoginRequest;
-import com.commercehub.auth_service.dto.LoginResponse;
-import com.commercehub.auth_service.dto.RegisterRequest;
-import com.commercehub.auth_service.dto.RegisterResponse;
+import com.commercehub.auth_service.dto.*;
+import com.commercehub.auth_service.entity.RefreshToken;
 import com.commercehub.auth_service.entity.User;
 import com.commercehub.auth_service.exception.EmailAlreadyExistsException;
 import com.commercehub.auth_service.exception.UsernameAlreadyExistsException;
@@ -12,6 +10,7 @@ import com.commercehub.auth_service.repository.UserRepository;
 import com.commercehub.auth_service.security.CustomUserDetails;
 import com.commercehub.auth_service.security.JwtService;
 import com.commercehub.auth_service.service.AuthService;
+import com.commercehub.auth_service.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +30,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
 
     private final JwtService jwtService;
+
+    private final RefreshTokenService    refreshTokenService;
 
     @Override
     @Transactional
@@ -65,12 +66,39 @@ public class AuthServiceImpl implements AuthService {
 
         CustomUserDetails userDetails = (CustomUserDetails) authenticate.getPrincipal();
         String token = jwtService.generateToken(userDetails);
-
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUser());
 
         return LoginResponse.builder()
                 .accessToken(token)
+                .refreshToken(refreshToken.getToken())
                 .tokenType("Bearer")
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
+        RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(request.getRefreshToken());
+
+        User user = refreshToken.getUser();
+
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+        String accessToken = jwtService.generateToken(userDetails);
+
+        return RefreshTokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .tokenType("Bearer")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void logout(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        refreshTokenService.deleteByUser(userDetails.getUser());
     }
 
     private void validateUser(RegisterRequest request) {

@@ -1,10 +1,8 @@
 package com.commercehub.auth_service.controller;
 
-import com.commercehub.auth_service.dto.LoginRequest;
-import com.commercehub.auth_service.dto.LoginResponse;
-import com.commercehub.auth_service.dto.RegisterRequest;
-import com.commercehub.auth_service.dto.RegisterResponse;
+import com.commercehub.auth_service.dto.*;
 import com.commercehub.auth_service.service.AuthService;
+import com.commercehub.auth_service.service.impl.RefreshTokenServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +30,23 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request){
         return ResponseEntity.ok(authService.login(request));
+    }
+
+
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshTokenResponse> refreshToken(
+            @RequestBody @Valid RefreshTokenRequest request){
+        return ResponseEntity.ok(authService.refreshToken(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            Authentication authentication) {
+
+        authService.logout(authentication);
+
+        return ResponseEntity.ok("Logout Successful");
     }
 
     @GetMapping("/me")
