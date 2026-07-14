@@ -1,10 +1,12 @@
 package com.commercehub.auth_service.security;
 
+import com.commercehub.auth_service.config.properties.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -14,21 +16,24 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String secret;
+//    @Value("${jwt.secret}")
+//    private String secret;
+//
+//    @Value("${jwt.expiration}")
+//    private long expiration;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+    private final JwtProperties jwtProperties;
 
 
     public String generateToken(UserDetails userDetails) {
-        System.out.println("Generating token with secret: " + secret);
+        System.out.println("Generating token with secret: " + jwtProperties.getSecret());
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -82,7 +87,7 @@ public class JwtService {
 
     private Claims extractAllClaims(String token) {
 
-        System.out.println("Validating token with secret: " + secret);
+        System.out.println("Validating token with secret: " + jwtProperties.getSecret());
 
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -92,12 +97,12 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     @PostConstruct
     public void printSecret() {
-        System.out.println("JWT Secret = " + secret);
+        System.out.println("JWT Secret = " + jwtProperties.getSecret());
     }
 }

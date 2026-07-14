@@ -9,7 +9,7 @@ spring:
     config:
       server:
         native:
-          search-locations: classpath:/config
+          search-locations: file:E:/commercehub/config-repo
 
 server:
   port: 8888

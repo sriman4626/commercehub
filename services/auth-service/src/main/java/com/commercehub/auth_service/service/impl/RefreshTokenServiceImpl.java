@@ -5,6 +5,8 @@ import com.commercehub.auth_service.entity.User;
 import com.commercehub.auth_service.repository.RefreshTokenRepository;
 import com.commercehub.auth_service.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenServiceImpl implements RefreshTokenService {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(RefreshTokenServiceImpl.class);
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -38,7 +43,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                         .createdAt(LocalDateTime.now())
                         .build();
 
-        return refreshTokenRepository.save(refreshToken);
+
+        RefreshToken savedToken = refreshTokenRepository.save(refreshToken);
+        log.info("Refresh token generated for user '{}'.", user.getUsername());
+        return savedToken;
     }
 
 

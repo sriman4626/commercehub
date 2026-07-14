@@ -48,8 +48,9 @@
 
         <module>services/config-server</module>
         <module>services/service-registry</module>
-        <module>services/api-gateway</module>
         <module>services/auth-service</module>
+        <module>services/user-service</module>
+        <module>services/api-gateway</module>
     </modules>
 
 </project>

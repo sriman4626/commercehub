@@ -6,25 +6,38 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log=LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUsernameExists(
-            UsernameAlreadyExistsException ex) {
+            UsernameAlreadyExistsException ex, HttpServletRequest request) {
 
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
-                .error(ex.getMessage())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
                 .build();
+
+        log.warn(
+                "Registration failed. Username already exists."
+        );
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(response);
@@ -32,12 +45,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailExists(
-            EmailAlreadyExistsException ex) {
+            EmailAlreadyExistsException ex, HttpServletRequest request) {
 
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
-                .error(ex.getMessage())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
                 .build();
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -101,6 +116,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
+                .error((HttpStatus.BAD_REQUEST.getReasonPhrase()))
                 .message("Malformed JWT Token")
                 .path(request.getRequestURI())
                 .build();
@@ -114,11 +130,38 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message("Invalid JWT Token")
                 .path(request.getRequestURI())
                 .build();
 
         return ResponseEntity
                 .badRequest().body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String,String>> handleValidation(
+            MethodArgumentNotValidException ex,HttpServletRequest request){
+
+        Map<String,String> errors =
+                new HashMap<>();
+
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(error ->
+
+                        errors.put(
+                                error.getField(),
+                                error.getDefaultMessage()
+                        )
+                );
+
+        log.warn(
+                "Validation failed for request {}",
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.badRequest()
+                .body(errors);
     }
 }

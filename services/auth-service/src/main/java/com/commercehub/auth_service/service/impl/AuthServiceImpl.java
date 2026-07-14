@@ -12,7 +12,10 @@ import com.commercehub.auth_service.security.JwtService;
 import com.commercehub.auth_service.service.AuthService;
 import com.commercehub.auth_service.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final UserRepository userRepository;
 
@@ -48,7 +54,9 @@ public class AuthServiceImpl implements AuthService {
                 .build();;
 
 
-        User savedUser = userRepository.save(user);
+        userRepository.save(user);
+
+        log.info("User '{}' registered successfully",user.getUsername());
 
         return RegisterResponse.builder()
                 .message("Registration Successful")
@@ -57,14 +65,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        Authentication authenticate = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+
+            Authentication authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+
 
         CustomUserDetails userDetails = (CustomUserDetails) authenticate.getPrincipal();
+        log.info("User '{}' logged in successfully.",
+                userDetails.getUsername());
         String token = jwtService.generateToken(userDetails);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUser());
 
@@ -76,11 +88,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
         RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(request.getRefreshToken());
 
         User user = refreshToken.getUser();
+
+        //deleting old refresh token
+        refreshTokenService.deleteByUser(user);
+
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
 
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
@@ -88,7 +105,7 @@ public class AuthServiceImpl implements AuthService {
 
         return RefreshTokenResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
+                .refreshToken(newRefreshToken.getToken())
                 .tokenType("Bearer")
                 .build();
     }

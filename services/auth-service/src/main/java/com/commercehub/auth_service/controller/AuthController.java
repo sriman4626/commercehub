@@ -6,6 +6,7 @@ import com.commercehub.auth_service.service.impl.RefreshTokenServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +22,6 @@ public class AuthController {
     public ResponseEntity<RegisterResponse> register(
             @Valid @RequestBody RegisterRequest request) {
 
-        System.out.println(">>> REGISTER API HIT <<<");
-
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -31,7 +30,6 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request){
         return ResponseEntity.ok(authService.login(request));
     }
-
 
 
     @PostMapping("/refresh")
@@ -57,4 +55,18 @@ public class AuthController {
 
         return authentication.getName();
     }
+
+    @GetMapping("/profile")
+    @PreAuthorize("hasRole('USER')")
+    public String profile(){
+        return "welcome user";
     }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String admin() {
+
+        return "Welcome Admin";
+    }
+
+}
