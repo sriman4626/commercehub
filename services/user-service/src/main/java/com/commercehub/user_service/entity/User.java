@@ -23,16 +23,19 @@ public class User extends BaseEntity {
     @Column(name = "auth_user_id", nullable = false)
     private Long authUserId;
 
-    @Column(name = "first_name", nullable = false, length = 100)
-    private String firstName;
-
-    @Column(name = "last_name", length = 100)
-    private String lastName;
+    @Column(nullable = false,unique = true)
+    private String username;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(length = 20)
+    //@Column(name = "first_name", nullable = false, length = 100)
+    private String firstName;
+
+    //@Column(name = "last_name", length = 100)
+    private String lastName;
+
+   // @Column(length = 20)
     private String phone;
 
     private LocalDate dateOfBirth;
@@ -41,5 +44,6 @@ public class User extends BaseEntity {
     private Gender gender;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserStatus status;
 }

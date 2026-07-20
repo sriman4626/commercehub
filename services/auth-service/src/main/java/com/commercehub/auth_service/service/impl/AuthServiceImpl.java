@@ -1,7 +1,9 @@
 package com.commercehub.auth_service.service.impl;
 
+import com.commercehub.auth_service.client.UserServiceClient;
 import com.commercehub.auth_service.constant.Roles;
 import com.commercehub.auth_service.dto.*;
+import com.commercehub.auth_service.dto.request.CreateUserRequest;
 import com.commercehub.auth_service.entity.RefreshToken;
 import com.commercehub.auth_service.entity.User;
 import com.commercehub.auth_service.exception.EmailAlreadyExistsException;
@@ -39,6 +41,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final RefreshTokenService    refreshTokenService;
 
+    private final UserServiceClient userServiceClient;
+
     @Override
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
@@ -55,6 +59,15 @@ public class AuthServiceImpl implements AuthService {
 
 
         userRepository.save(user);
+
+        CreateUserRequest createUserRequest =
+                CreateUserRequest.builder()
+                        .authUserId(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .build();
+
+        userServiceClient.createUser(createUserRequest);
 
         log.info("User '{}' registered successfully",user.getUsername());
 

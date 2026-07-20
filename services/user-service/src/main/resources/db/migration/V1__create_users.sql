@@ -4,11 +4,13 @@ CREATE TABLE users (
 
                        auth_user_id BIGINT NOT NULL,
 
-                       first_name VARCHAR(100) NOT NULL,
-
-                       last_name VARCHAR(100),
+                       username VARCHAR(100) NOT NULL UNIQUE,
 
                        email VARCHAR(255) NOT NULL UNIQUE,
+
+                       first_name VARCHAR(100),
+
+                       last_name VARCHAR(100),
 
                        phone VARCHAR(20),
 
