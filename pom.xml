@@ -52,6 +52,7 @@
         <module>services/user-service</module>
         <module>services/api-gateway</module>
         <module>services/product-service</module>
+        <module>services/inventory-service</module>
     </modules>
 
 </project>
