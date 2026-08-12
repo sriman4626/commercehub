@@ -19,4 +19,6 @@ public interface ProductService {
     Page<ProductResponse> searchProducts(String keyword, Long categoryId, Pageable pageable);
 
     List<ProductResponse> getProducts(BulkProductRequest request);
+
+    ProductResponse getProductBySku(String sku);
 }

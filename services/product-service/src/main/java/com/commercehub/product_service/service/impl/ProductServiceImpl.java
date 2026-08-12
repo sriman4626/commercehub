@@ -73,4 +73,14 @@ public class ProductServiceImpl implements ProductService {
                 .map(mapper::toResponse)
                 .toList();
     }
+
+    @Override
+    public ProductResponse getProductBySku(String sku) {
+        Product product = repository.findBySku(sku)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Product not found with SKU: " + sku));
+
+        return mapper.toResponse(product);
+    }
 }

@@ -63,4 +63,9 @@ public class ProductController {
         return productService.getProducts(request);
 
     }
+
+    @GetMapping("/sku/{sku}")
+    public ProductResponse getProductBySku(@PathVariable String sku) {
+        return productService.getProductBySku(sku);
+    }
 }

@@ -1,6 +1,7 @@
 package com.commercehub.inventory_service.service.impl;
 
 import com.commercehub.inventory_service.dto.request.ReserveStockRequest;
+import com.commercehub.inventory_service.dto.request.UpdateStockRequest;
 import com.commercehub.inventory_service.dto.response.InventoryResponse;
 import com.commercehub.inventory_service.entity.Inventory;
 import com.commercehub.inventory_service.exception.InsufficientStockException;
@@ -18,6 +19,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
+
 
     @Override
     @Transactional
@@ -40,4 +42,50 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory savedInventory = inventoryRepository.save(inventory);
         return inventoryMapper.toResponse(savedInventory);
     }
+
+    @Override
+    @Transactional
+    public InventoryResponse updateStock(UpdateStockRequest request) {
+        Inventory inventory = inventoryRepository.findBySku(request.getSku())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Inventory not found for SKU: " + request.getSku()));
+
+        inventory.setAvailableQuantity(
+                inventory.getAvailableQuantity() + request.getQuantity());
+
+        return inventoryMapper.toResponse(inventory);
+    }
+
+    @Override
+    @Transactional
+    public InventoryResponse releaseStock(ReserveStockRequest request) {
+        Inventory inventory = inventoryRepository.findBySku(request.getSku())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Inventory not found for SKU : " + request.getSku()));
+
+        if(inventory.getReservedQuantity()<request.getQuantity()){
+            throw new IllegalArgumentException("cannot release more stock than reserved");
+        }
+
+        inventory.setReservedQuantity(inventory.getReservedQuantity()-request.getQuantity());
+
+        inventory.setAvailableQuantity(inventory.getAvailableQuantity()+request.getQuantity());
+
+        return inventoryMapper.toResponse(inventory);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InventoryResponse getInventory(String sku) {
+
+        Inventory inventory = inventoryRepository.findBySku(sku)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Inventory not found for SKU: " + sku));
+
+        return inventoryMapper.toResponse(inventory);
+    }
+
+
 }
