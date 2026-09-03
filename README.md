@@ -1,55 +1,59 @@
-# commercehub
+# 🛒 CommerceHub
 
+CommerceHub is a backend e-commerce platform built using a **microservices architecture** with Java and Spring Boot.
 
+The project is designed to simulate a real-world e-commerce backend consisting of independent services for authentication, users, products, inventory, and orders.
 
-# 🔐 Authentication Service Features
+The project focuses on:
 
-- JWT Authentication
-- Refresh Token Support
-- Refresh Token Rotation
-- Spring Security 6
-- BCrypt Password Encoding
-- AuthenticationManager
-- UserDetailsService
-- JWT Filter
-- SecurityContextHolder
-- Method Security
-- RBAC
-- Global Exception Handling
-- Custom Exceptions
-- Bean Validation
-- Logging (SLF4J)
-- ConfigurationProperties
-- Flyway Database Migration
-
-- # 🛠 Tech Stack
-
-### Backend
-
-- Java 21
-- Spring Boot 3
-- Spring Security
-- Spring Cloud
-- Spring Data JPA
-- Hibernate
-
-### Database
-
-- MySQL
-- Flyway
-
-### Security
-
-- JWT
-- Refresh Tokens
-- BCrypt
-
-### Infrastructure
-
-- Config Server
-- Eureka
+- Microservices architecture
+- Service discovery
 - API Gateway
+- JWT authentication and authorization
+- REST APIs
+- Inter-service communication
+- Inventory management
+- Optimistic locking
+- Order processing
+- Distributed transaction and consistency challenges
 
-### Build Tool
+---
 
-- Maven
+# 🏗️ Architecture
+
+```text
+                         ┌─────────────────┐
+                         │     Client      │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │   API Gateway   │
+                         │  Spring Cloud   │
+                         └────────┬────────┘
+                                  │
+              ┌───────────────────┼────────────────────┐
+              │                   │                    │
+              ▼                   ▼                    ▼
+       ┌─────────────┐    ┌─────────────┐     ┌─────────────┐
+       │    Auth     │    │    User     │     │   Product   │
+       │   Service   │    │   Service   │     │   Service   │
+       └─────────────┘    └─────────────┘     └──────┬──────┘
+                                                      │
+                                                      │
+                                                      ▼
+                                             ┌─────────────────┐
+                                             │    Inventory    │
+                                             │     Service     │
+                                             └─────────────────┘
+
+                                  ┌─────────────────┐
+                                  │      Order      │
+                                  │     Service     │
+                                  └────────┬────────┘
+                                           │
+                              ┌────────────┴────────────┐
+                              │                         │
+                              ▼                         ▼
+                       Product Service          Inventory Service
+                       (OpenFeign)              (OpenFeign)
