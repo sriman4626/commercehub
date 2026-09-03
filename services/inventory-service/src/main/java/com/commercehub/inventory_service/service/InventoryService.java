@@ -1,5 +1,6 @@
 package com.commercehub.inventory_service.service;
 
+import com.commercehub.inventory_service.dto.request.CreateInventoryRequest;
 import com.commercehub.inventory_service.dto.request.ReserveStockRequest;
 import com.commercehub.inventory_service.dto.request.UpdateStockRequest;
 import com.commercehub.inventory_service.dto.response.InventoryResponse;
@@ -16,5 +17,5 @@ public interface InventoryService {
 
     InventoryResponse getInventory(String sku);
 
-
+    InventoryResponse createInventory(CreateInventoryRequest request);
 }

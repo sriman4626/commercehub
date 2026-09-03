@@ -15,9 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @Service
@@ -48,8 +52,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUser(Long id) {
+    public UserResponse getUser(Long id,String username, String role) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        if(!"ROLE_ADMIN".equals(role)){
+            if(!user.getUsername().equals(username)){
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this user");
+            }
+        }
         return userMapper.toResponse(user);
     }
 
@@ -60,9 +69,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateUser(Long id, UpdateUserRequest request) {
+    public UserResponse updateUser(Long id, UpdateUserRequest request, String username, String role) {
+//        String name = authentication.getName();
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
+
+        if(!"ROLE_ADMIN".equals(role)){
+            if(!user.getUsername().equals(username)){
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this user");
+            }
+        }
+//        if(!user.getUsername().equals(name)){
+//            throw new AccessDeniedException("you cannot update this user");
+//        }
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());

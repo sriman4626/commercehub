@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +33,15 @@ public class JwtService {
         System.out.println("Generating token with secret: " + jwtProperties.getSecret());
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim("role", userDetails.getAuthorities()
+                        .stream()
+                        .findFirst()
+                        .map(GrantedAuthority::getAuthority)
+                        .orElse("ROLE_USER"))
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
+                .expiration(new Date(
+                        System.currentTimeMillis()
+                                + jwtProperties.getExpiration()))
                 .signWith(getSigningKey())
                 .compact();
     }

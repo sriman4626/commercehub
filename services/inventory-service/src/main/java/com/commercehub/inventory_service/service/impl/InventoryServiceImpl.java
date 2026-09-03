@@ -1,9 +1,11 @@
 package com.commercehub.inventory_service.service.impl;
 
+import com.commercehub.inventory_service.dto.request.CreateInventoryRequest;
 import com.commercehub.inventory_service.dto.request.ReserveStockRequest;
 import com.commercehub.inventory_service.dto.request.UpdateStockRequest;
 import com.commercehub.inventory_service.dto.response.InventoryResponse;
 import com.commercehub.inventory_service.entity.Inventory;
+import com.commercehub.inventory_service.exception.DuplicateResourceException;
 import com.commercehub.inventory_service.exception.InsufficientStockException;
 import com.commercehub.inventory_service.exception.ResourceNotFoundException;
 import com.commercehub.inventory_service.mapper.InventoryMapper;
@@ -85,6 +87,24 @@ public class InventoryServiceImpl implements InventoryService {
                                 "Inventory not found for SKU: " + sku));
 
         return inventoryMapper.toResponse(inventory);
+    }
+
+    @Override
+    public InventoryResponse createInventory(CreateInventoryRequest request) {
+        if (inventoryRepository.findBySku(request.getSku()).isPresent()) {
+            throw new DuplicateResourceException(
+                    "Inventory already exists for SKU: " + request.getSku());
+        }
+
+        Inventory inventory = Inventory.builder()
+                .sku(request.getSku())
+                .availableQuantity(0)
+                .reservedQuantity(0)
+                .build();
+
+        Inventory savedInventory = inventoryRepository.save(inventory);
+
+        return inventoryMapper.toResponse(savedInventory);
     }
 
 

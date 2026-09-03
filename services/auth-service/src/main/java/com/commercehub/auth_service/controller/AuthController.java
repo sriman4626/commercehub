@@ -62,11 +62,13 @@ public class AuthController {
         return authentication.getName();
     }
 
+
     @GetMapping("/profile")
     @PreAuthorize("hasRole('USER')")
     public String profile(){
         return "welcome user";
     }
+
 
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")

@@ -31,4 +31,8 @@ public class ProductResponse {
 
     private LocalDateTime updatedAt;
 
+    private Integer availableQuantity;
+
+    private Integer reservedQuantity;
+
 }

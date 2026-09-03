@@ -32,6 +32,11 @@ spring:
               predicates:
                 - Path=/api/v1/inventory/**
 
+            - id: order-service
+              uri: lb://ORDER-SERVICE
+              predicates:
+                - Path=/api/v1/orders/**
+
 server:
   port: 8080
 

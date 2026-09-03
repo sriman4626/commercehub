@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "user-service")
 public interface UserServiceClient {
 
-    @PostMapping("/api/v1/users")
+    @PostMapping("/api/v1/users/internal")
     void createUser(@RequestBody CreateUserRequest request);
 }

@@ -1,6 +1,9 @@
 package com.commercehub.product_service.service.impl;
 
+import com.commercehub.product_service.client.InventoryClient;
 import com.commercehub.product_service.constant.ProductStatus;
+import com.commercehub.product_service.dto.client.CreateInventoryRequest;
+import com.commercehub.product_service.dto.client.InventoryResponse;
 import com.commercehub.product_service.dto.request.BulkProductRequest;
 import com.commercehub.product_service.dto.request.CreateProductRequest;
 import com.commercehub.product_service.dto.response.ProductResponse;
@@ -27,6 +30,8 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper mapper;
 
+    private final InventoryClient inventoryClient;
+
     @Override
     public ProductResponse createProduct(CreateProductRequest request) {
 
@@ -41,6 +46,12 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = repository.save(product);
 
+        CreateInventoryRequest inventoryRequest = CreateInventoryRequest.builder()
+                .sku(savedProduct.getSku())
+                .build();
+
+        inventoryClient.createInventory(inventoryRequest);
+
         return mapper.toResponse(savedProduct);
     }
 
@@ -51,7 +62,13 @@ public class ProductServiceImpl implements ProductService {
                 orElseThrow(() -> new ResourceNotFoundException(
                         "Product not found : " + id));
 
-        return mapper.toResponse(product);
+        ProductResponse response = mapper.toResponse(product);
+
+        InventoryResponse inventory = inventoryClient.getInventory(product.getSku());
+
+        response.setAvailableQuantity(inventory.getAvailableQuantity());
+        response.setReservedQuantity(inventory.getReservedQuantity());
+        return response;
     }
 
     @Override
